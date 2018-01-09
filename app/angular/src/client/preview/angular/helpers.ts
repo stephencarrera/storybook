@@ -7,12 +7,12 @@ import { ErrorComponent } from './components/error.component';
 import { NoPreviewComponent } from './components/no-preview.component';
 import { STORY } from './app.token';
 import { getAnnotations, getParameters, getPropMetadata } from './utils';
-import { NgModuleMetadata, NgStory, IGetStoryWithContext, IContext, NgProvidedData } from './types';
+import { NgModuleMetadata, NgStory, IGetStoryWithContext, NgProvidedData } from './types';
 
 let platform: any = null;
 let promises: Promise<NgModuleRef<any>>[] = [];
 
-type IRenderStoryFn = (story: IGetStoryWithContext, context: IContext, reRender?: boolean) => void;
+type IRenderStoryFn = (story: IGetStoryWithContext, reRender?: boolean) => void;
 type IRenderErrorFn = (error: Error) => void;
 
 interface IModule extends Type<any> {
@@ -134,13 +134,9 @@ const getModule = (
   return NewModule;
 };
 
-const initModule = (
-  currentStory: IGetStoryWithContext,
-  context: IContext,
-  reRender: boolean
-): IModule => {
+const initModule = (currentStory: IGetStory, reRender: boolean): IModule => {
   const { component, componentMeta, props, propsMeta, params, moduleMeta } = getComponentMetadata(
-    currentStory(context)
+    currentStory()
   );
 
   if (!componentMeta) {
@@ -208,6 +204,6 @@ export const renderNoPreview = debounce(() => {
   draw(Module);
 });
 
-export const renderNgApp = debounce((story, context, reRender) => {
-  draw(initModule(story, context, reRender), reRender);
+export const renderNgApp = debounce((story, reRender) => {
+  draw(initModule(story, reRender), reRender);
 });
