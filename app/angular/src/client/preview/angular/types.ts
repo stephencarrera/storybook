@@ -1,8 +1,9 @@
 export interface NgModuleMetadata {
-  declarations: Array<any>;
-  imports: Array<any>;
-  schemas: Array<any>;
-  providers: Array<any>;
+  declarations?: Array<any>;
+  entryComponents?: Array<any>;
+  imports?: Array<any>;
+  schemas?: Array<any>;
+  providers?: Array<any>;
 }
 
 export interface ICollection {
@@ -10,10 +11,11 @@ export interface ICollection {
 }
 
 export interface NgStory {
-  component: any;
+  component?: any;
   props: ICollection;
-  propsMeta: ICollection;
+  propsMeta?: ICollection;
   moduleMetadata?: NgModuleMetadata;
+  template?: string;
 }
 
 export interface NgError {
@@ -24,3 +26,6 @@ export interface NgError {
 export type NgProvidedData = NgStory | NgError;
 
 export type IGetStory = () => NgStory;
+
+export type IRenderStoryFn = (story: IGetStory, reRender?: boolean) => void;
+export type IRenderErrorFn = (error: Error) => void;
