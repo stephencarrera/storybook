@@ -1,26 +1,22 @@
 import path from 'path';
 import webpack from 'webpack';
+import Dotenv from 'dotenv-webpack';
+import InterpolateHtmlPlugin from 'react-dev-utils/InterpolateHtmlPlugin';
 import CaseSensitivePathsPlugin from 'case-sensitive-paths-webpack-plugin';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import CopyWebpackPlugin from 'copy-webpack-plugin';
-import WatchMissingNodeModulesPlugin from './WatchMissingNodeModulesPlugin';
-import {
-  getConfigDir,
-  includePaths,
-  excludePaths,
-  nodeModulesPaths,
-  loadEnv,
-  nodePaths,
-} from './utils';
+import { WatchMissingNodeModulesPlugin, managerPath } from '@storybook/core/server';
+
+import { includePaths, excludePaths, nodeModulesPaths, loadEnv, nodePaths } from './utils';
 import { getPreviewHeadHtml, getManagerHeadHtml } from '../utils';
 import babelLoaderConfig from './babel';
 import { version } from '../../../package.json';
 
-export default function() {
+export default function(configDir) {
   const config = {
     devtool: 'cheap-module-source-map',
     entry: {
-      manager: [require.resolve('./polyfills'), require.resolve('../../client/manager')],
+      manager: [require.resolve('./polyfills'), managerPath],
       preview: [
         require.resolve('./polyfills'),
         require.resolve('./globals'),
@@ -33,11 +29,12 @@ export default function() {
       publicPath: '/',
     },
     plugins: [
+      new InterpolateHtmlPlugin(process.env),
       new HtmlWebpackPlugin({
         filename: 'index.html',
         chunks: ['manager'],
         data: {
-          managerHead: getManagerHeadHtml(getConfigDir()),
+          managerHead: getManagerHeadHtml(configDir),
           version,
         },
         template: require.resolve('../index.html.ejs'),
@@ -46,7 +43,7 @@ export default function() {
         filename: 'iframe.html',
         excludeChunks: ['manager'],
         data: {
-          previewHead: getPreviewHeadHtml(getConfigDir()),
+          previewHead: getPreviewHeadHtml(configDir),
         },
         template: require.resolve('../iframe.html.ejs'),
       }),
@@ -59,6 +56,7 @@ export default function() {
       new CaseSensitivePathsPlugin(),
       new WatchMissingNodeModulesPlugin(nodeModulesPaths),
       new webpack.ProgressPlugin(),
+      new Dotenv({ silent: true }),
     ],
     module: {
       rules: [

@@ -114,32 +114,54 @@ npm run storybook
 Now you can change components and write stories whenever you need to.
 You'll get those changes into Storybook in a snap with the help of webpack's HMR API.
 
-## Tips
+## Module Metadata
 
-### Configure style rules
-
-If you use `templateUrl` in your components, you need to configure webpack rules for .css/.scss files. Create a file named `webpack.config.js` under the config directory(by default `.storybook`):
+If your component has dependencies on other Angular directives and modules, these can be supplied using the `moduleMetadata` property on an individual story:
 
 ```js
-const genDefaultConfig = require('@storybook/angular/dist/server/config/defaults/webpack.config.js');
+import { CommonModule } from '@angular/common';
+import { storiesOf } from '@storybook/angular';
+import { MyButtonComponent } from '../src/app/my-button/my-button.component';
+import { MyPanelComponent } from '../src/app/my-panel/my-panel.component';
+import { MyDataService } from '../src/app/my-data/my-data.service';
 
-module.exports = (baseConfig, env) => {
-  const config = genDefaultConfig(baseConfig, env);
-
-  // Overwrite .css rule
-  const cssRule = config.module.rules.find(rule => rule.test && rule.test.toString() === '/\\.css$/');
-  if (cssRule) {
-    cssRule.exclude = /\.component\.css$/;
-  }
-
-  // Add .scss rule
-  config.module.rules.unshift({
-    test: /\.scss$/,
-    loaders: ['raw-loader', 'sass-loader'],
-  });
-
-  return config;
-};
+storiesOf('My Panel', module)
+  .add('Default', () => ({
+    component: MyPanelComponent,
+    moduleMetadata: {
+      imports: [CommonModule],
+      schemas: [],
+      declarations: [MyButtonComponent],
+      providers: [MyDataService],
+    }
+  }));
 ```
 
-If you want more details, see [customize the webpack config](/configurations/custom-webpack-config/).
+If you have metadata that is common between your stories, this can configured once using the `moduleMetadata()` decorator:
+
+```js
+import { CommonModule } from '@angular/common';
+import { storiesOf, moduleMetadata } from '@storybook/angular';
+import { MyButtonComponent } from '../src/app/my-button/my-button.component';
+import { MyPanelComponent } from '../src/app/my-panel/my-panel.component';
+import { MyDataService } from '../src/app/my-data/my-data.service';
+
+storiesOf('My Panel', module)
+  .addDecorator(
+    moduleMetadata({
+      imports: [CommonModule],
+      schemas: [],
+      declarations: [MyButtonComponent],
+      providers: [MyDataService],
+    })
+  )
+  .add('Default', () => ({
+    component: MyPanelComponent
+  }))
+  .add('with a title', () => ({
+    component: MyPanelComponent,
+    props: {
+      title: 'Foo',
+    }
+  }));
+```
